@@ -1,23 +1,45 @@
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { Button, StyleSheet, View } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
   }),
 });
 
 
 export default function App() {
-  function scheduleNotificationHandler() {
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(
+      notification => {
+        const userName = notification.request.content.data.userName;
+        console.log(`Notification received from ${userName}`);
+      }
+    );
+
+    return () => subscription.remove();
+  } , []);
+
+
+  async function allowsNotificationsAsync() {
+    const settings = await Notifications.getPermissionsAsync();
+    return (
+      settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+    );
+  }
+
+  async function scheduleNotificationHandler() {
+    const hasPushNotificationPermissionGranted = await allowsNotificationsAsync()
+
+    if (!hasPushNotificationPermissionGranted) return;
+
     Notifications.scheduleNotificationAsync({
       content: {
         title: "You've got mail! 📬",
         body: 'Here is the notification body',
-        data: { data: 'goes here' },
+        data: { userName: 'mammimia' },
       },
       trigger: { seconds: 2 },
     });
