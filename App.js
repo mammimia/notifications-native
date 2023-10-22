@@ -1,7 +1,8 @@
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { Button, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Button, StyleSheet, Text, View } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -10,6 +11,14 @@ Notifications.setNotificationHandler({
 });
 
 export default function App() {
+  const [expoPushToken, setExpoPushToken] = useState('');
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((token) =>
+      setExpoPushToken(token)
+    );
+  }, []);
+
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
@@ -28,6 +37,39 @@ export default function App() {
       responseSubscription.remove();
     };
   }, []);
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250]
+      });
+    }
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+
+    token = (
+      await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig.extra.eas.projectId
+      })
+    ).data;
+    console.log(token);
+
+    return token;
+  }
 
   async function allowsNotificationsAsync() {
     const settings = await Notifications.getPermissionsAsync();
@@ -55,6 +97,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Text>Expo push token: {expoPushToken}</Text>
       <Button
         title="Schedule Notification"
         onPress={scheduleNotificationHandler}
