@@ -95,13 +95,30 @@ export default function App() {
     });
   }
 
+  function sendPushNotification() {
+    fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        to: expoPushToken,
+        sound: 'default',
+        title: 'Original Title',
+        body: 'And here is the body!',
+        data: { userName: 'push-mammimia' }
+      })
+    });
+  }
+
   return (
     <View style={styles.container}>
-      <Text>Expo push token: {expoPushToken}</Text>
+      <Text>Expo push token {expoPushToken ? 'recieved' : 'not received'}</Text>
       <Button
         title="Schedule Notification"
         onPress={scheduleNotificationHandler}
       />
+      <Button title="Send Push Notification" onPress={sendPushNotification} />
       <StatusBar style="auto" />
     </View>
   );
@@ -112,6 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 15
   }
 });
