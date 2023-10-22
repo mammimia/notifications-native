@@ -5,33 +5,41 @@ import { Button, StyleSheet, View } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-  }),
+    shouldShowAlert: true
+  })
 });
-
 
 export default function App() {
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
-      notification => {
+      (notification) => {
         const userName = notification.request.content.data.userName;
         console.log(`Notification received from ${userName}`);
       }
     );
 
-    return () => subscription.remove();
-  } , []);
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log('Respoonse: ', response);
+      });
 
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
 
   async function allowsNotificationsAsync() {
     const settings = await Notifications.getPermissionsAsync();
     return (
-      settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+      settings.granted ||
+      settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
     );
   }
 
   async function scheduleNotificationHandler() {
-    const hasPushNotificationPermissionGranted = await allowsNotificationsAsync()
+    const hasPushNotificationPermissionGranted =
+      await allowsNotificationsAsync();
 
     if (!hasPushNotificationPermissionGranted) return;
 
@@ -39,15 +47,18 @@ export default function App() {
       content: {
         title: "You've got mail! 📬",
         body: 'Here is the notification body',
-        data: { userName: 'mammimia' },
+        data: { userName: 'mammimia' }
       },
-      trigger: { seconds: 2 },
+      trigger: { seconds: 2 }
     });
   }
 
   return (
     <View style={styles.container}>
-      <Button title='Schedule Notification' onPress={scheduleNotificationHandler}/>
+      <Button
+        title="Schedule Notification"
+        onPress={scheduleNotificationHandler}
+      />
       <StatusBar style="auto" />
     </View>
   );
@@ -58,6 +69,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
+    justifyContent: 'center'
+  }
 });
