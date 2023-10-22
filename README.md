@@ -9,6 +9,13 @@ This is a Notification Native project. It was developed for learning purposes.
 
 ## Installation
 
+Need to create projectId from [Expo](https://expo.dev/) and install eas-cli. Then init eas-cli with your projectId.
+
+```bash
+  npm install --global eas-cli && \
+eas init --id {your-project-id}
+```
+
 To install this project follow the steps after cloning.
 
 ```bash
